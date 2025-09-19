@@ -1,0 +1,36 @@
+trigger:
+  branches:
+    include:
+      - main   # run pipeline on pushes to main branch
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  # Step 1: Install PHP
+  - task: UsePHPVersion@0
+    inputs:
+      versionSpec: '8.1'   # change to your PHP version
+
+  # Step 2: Install Composer
+  - script: |
+      curl -sS https://getcomposer.org/installer | php
+      sudo mv composer.phar /usr/local/bin/composer
+    displayName: 'Install Composer'
+
+  # Step 3: Install dependencies
+  - script: |
+      composer install --no-interaction --prefer-dist
+    displayName: 'Install PHP dependencies'
+
+  # Step 4: Run PHPUnit tests (optional)
+  - script: |
+      ./vendor/bin/phpunit --testdox
+    displayName: 'Run PHPUnit tests'
+
+  # Step 5: Publish artifacts (optional - e.g. app files or build results)
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)'
+      ArtifactName: 'php-app'
+      publishLocation: 'Container'
